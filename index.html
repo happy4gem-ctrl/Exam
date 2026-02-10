@@ -37,73 +37,6 @@
         h1 { color: #333; margin-bottom: 10px; }
         .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 30px; }
 
-        /* 佈局容器 */
-.main-layout {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-    max-width: 900px;
-    align-items: flex-start;
-}
-
-/* 側邊欄樣式 */
-.sidebar {
-    width: 200px;
-    background: white;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.sidebar h3 {
-    font-size: 1.1rem;
-    margin-top: 0;
-    color: #374151;
-    border-bottom: 2px solid #F3F4F6;
-    padding-bottom: 10px;
-}
-
-/* 列表按鈕 */
-.question-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 15px;
-}
-
-.nav-item {
-    padding: 10px;
-    border: 1px solid #E5E7EB;
-    background: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.nav-item:hover { background: #F9FAFB; }
-
-/* 當前題目樣式 */
-.nav-item.active {
-    border-color: var(--primary);
-    background: #EEF2FF;
-    color: var(--primary);
-    font-weight: bold;
-}
-
-/* 已答對/答錯的標記 (可選) */
-.nav-item.done { border-left: 4px solid var(--success); }
-
-/* 手機版適應：側欄改到上方或隱藏 */
-@media (max-width: 768px) {
-    .main-layout { flex-direction: column; }
-    .sidebar { width: 100%; max-height: 150px; }
-    .question-list { flex-direction: row; overflow-x: auto; }
-}
-
         /* 進度條 */
         .progress-container {
             width: 100%;
@@ -207,27 +140,90 @@
         @media (max-width: 480px) {
             .options-grid { grid-template-columns: 1fr; }
         }
+        /* 佈局容器 */
+.main-layout {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+    align-items: flex-start;
+}
 
+/* 側邊欄樣式 */
+.sidebar {
+    width: 200px;
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.sidebar h3 {
+    font-size: 1.1rem;
+    margin-top: 0;
+    color: #374151;
+    border-bottom: 2px solid #F3F4F6;
+    padding-bottom: 10px;
+}
+
+/* 列表按鈕 */
+.question-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.nav-item {
+    padding: 10px;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.nav-item:hover { background: #F9FAFB; }
+
+/* 當前題目樣式 */
+.nav-item.active {
+    border-color: var(--primary);
+    background: #EEF2FF;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* 已答對/答錯的標記 (可選) */
+.nav-item.done { border-left: 4px solid var(--success); }
+
+/* 手機版適應：側欄改到上方或隱藏 */
+@media (max-width: 768px) {
+    .main-layout { flex-direction: column; }
+    .sidebar { width: 100%; max-height: 150px; }
+    .question-list { flex-direction: row; overflow-x: auto; }
+}
     </style>
 </head>
 <body>
 
-<div class="controls">...</div>
-<div class="container">
-    <div id="quiz-screen">
-        <h1>詞意辨析大挑戰</h1>
-        <p class="subtitle">小學四年級中文科 • 單元練習</p>
-
-        
-
-    <div class="container"></div>
-
-         <div class="main-layout">
+<div class="main-layout">
     <div class="sidebar">
         <h3>題目列表</h3>
         <div id="question-list" class="question-list">
             </div>
     </div>
+
+    <div class="container">
+        </div>
+</div>
+    
+    <div id="quiz-screen">
+        <h1>詞意辨析大挑戰</h1>
+        <p class="subtitle">小學四年級中文科 • 單元練習</p>
         
         <div class="progress-container">
             <div class="progress-bar" id="progress-bar"></div>
@@ -255,9 +251,8 @@
         <p id="comment">繼續加油！</p>
         <button class="restart-btn" onclick="restartQuiz()">再玩一次 ↻</button>
     </div>
-   
-        
-         </div>
+</div>
+
 <script>
     // 題庫數據
       const questions = [
@@ -300,13 +295,13 @@
   },
   {
     "question": "玩具廠爆炸產生了巨大的衝擊，附近的居民都能感受到______。",
-    "options": ["震動", "振動", "移動", "走動"],
+    "options": ["震動，", "振動", "移動", "走動"],
     "answer": "震動",
     "explanation": "「震動」形容物體無規則的強烈的顫動。"
   },
   {
     "question": "我們說話的聲音是由聲帶_______產生的。",
-    "options": ["震動", "移動", "振動", "走動"],
+    "options": ["震動", "移動", "振動，", "走動"],
     "answer": "振動",
     "explanation": "「振動」形容物體有規則的、比較輕的運動。"
   },
@@ -605,7 +600,8 @@
     const totalSpan = document.getElementById('total');
     const comment = document.getElementById('comment');
 
-    // 在 loadQuestion() 之前定義渲染側欄的函數
+    
+// 在 loadQuestion() 之前定義渲染側欄的函數
 function renderSidebar() {
     const listContainer = document.getElementById('question-list');
     listContainer.innerHTML = '';
@@ -636,9 +632,6 @@ function loadQuestion() {
     progressBar.style.width = `${progress}%`;
     // ...
 }
-
-    function loadQuestion() {
-        const currentQ = questions[currentQuestionIndex];
         
         // 更新進度條
         const progress = ((currentQuestionIndex) / questions.length) * 100;
@@ -730,8 +723,7 @@ function loadQuestion() {
     // 啟動程式
     loadQuestion();
 
-    }
-}
+    
 </script>
 
 </body>
