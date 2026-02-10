@@ -140,10 +140,55 @@
         @media (max-width: 480px) {
             .options-grid { grid-template-columns: 1fr; }
         }
+        /* 導航列容器 */
+.word-navigator {
+    display: flex;
+    flex-wrap: wrap; /* 太多時自動換行 */
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    max-width: 100%;
+}
+
+/* 每一粒導航按鈕 */
+.nav-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%; /* 圓形 */
+    background-color: #e0e0e0;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+/* 當滑鼠指住時 */
+.nav-btn:hover {
+    background-color: #d1d5db;
+    transform: scale(1.1);
+}
+
+/* ✨ 正在默緊那一題 (Active) */
+.nav-btn.active {
+    background-color: #4F46E5; /* 紫色 (配合你原本的主題) */
+    color: white;
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+    transform: scale(1.1);
+}
     </style>
 </head>
 <body>
+<div id="card-container">...</div>
 
+<div id="word-navigator" class="word-navigator">
+    </div>
+
+<div class="controls">...</div>
 <div class="container">
     <div id="quiz-screen">
         <h1>詞意辨析大挑戰</h1>
