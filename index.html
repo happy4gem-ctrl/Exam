@@ -601,6 +601,38 @@
     const totalSpan = document.getElementById('total');
     const comment = document.getElementById('comment');
 
+    // 在 loadQuestion() 之前定義渲染側欄的函數
+function renderSidebar() {
+    const listContainer = document.getElementById('question-list');
+    listContainer.innerHTML = '';
+
+    questions.forEach((_, index) => {
+        const item = document.createElement('div');
+        item.className = `nav-item ${index === currentQuestionIndex ? 'active' : ''}`;
+        item.textContent = `第 ${index + 1} 題`;
+        
+        // 點擊跳轉功能
+        item.onclick = () => {
+            currentQuestionIndex = index;
+            loadQuestion();
+        };
+        listContainer.appendChild(item);
+    });
+}
+
+// 修改原有的 loadQuestion 函數
+function loadQuestion() {
+    const currentQ = questions[currentQuestionIndex];
+    
+    // 更新側欄狀態
+    renderSidebar();
+
+    // ... 以下原有的邏輯不變 ...
+    const progress = ((currentQuestionIndex + 1) / questions.length) * 100; // 修正進度條顯示
+    progressBar.style.width = `${progress}%`;
+    // ...
+}
+
     function loadQuestion() {
         const currentQ = questions[currentQuestionIndex];
         
@@ -693,38 +725,8 @@
 
     // 啟動程式
     loadQuestion();
-// 在 loadQuestion() 之前定義渲染側欄的函數
-function renderSidebar() {
-    const listContainer = document.getElementById('question-list');
-    listContainer.innerHTML = '';
 
-    questions.forEach((_, index) => {
-        const item = document.createElement('div');
-        item.className = `nav-item ${index === currentQuestionIndex ? 'active' : ''}`;
-        item.textContent = `第 ${index + 1} 題`;
-        
-        // 點擊跳轉功能
-        item.onclick = () => {
-            currentQuestionIndex = index;
-            loadQuestion();
-        };
-        listContainer.appendChild(item);
-    });
-}
-
-// 修改原有的 loadQuestion 函數
-function loadQuestion() {
-    const currentQ = questions[currentQuestionIndex];
-    
-    // 更新側欄狀態
-    renderSidebar();
-
-    // ... 以下原有的邏輯不變 ...
-    const progress = ((currentQuestionIndex + 1) / questions.length) * 100; // 修正進度條顯示
-    progressBar.style.width = `${progress}%`;
-    // ...
-}
-    
+    }
 }
 </script>
 
