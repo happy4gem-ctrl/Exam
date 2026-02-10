@@ -616,6 +616,46 @@
 
     // 啟動程式
     loadQuestion();
+
+    // 假設你的詞語列表變數叫 vocabList (請根據你實際變數名修改)
+// 假設你的當前索引變數叫 currentIndex
+
+function renderNavigator() {
+    const navContainer = document.getElementById('word-navigator');
+    navContainer.innerHTML = ''; // 清空舊的
+
+    // 迴圈：有幾多個詞語，就造幾多粒按鈕
+    vocabList.forEach((word, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-btn';
+        btn.innerText = index + 1; // 顯示號碼 1, 2, 3...
+        
+        // 如果想直接顯示詞語而不是號碼，可以用 btn.innerText = word; 
+        // 但如果詞語太長，版面會亂，建議用號碼。
+
+        // 判斷這一粒是不是「當前題目」
+        if (index === currentIndex) {
+            btn.classList.add('active');
+        }
+
+        // 加入點擊功能：一撳就跳去
+        btn.onclick = () => {
+            jumpToQuestion(index);
+        };
+
+        navContainer.appendChild(btn);
+    });
+}
+
+// 這是「跳題」的功能
+function jumpToQuestion(index) {
+    currentIndex = index; // 更新當前索引
+    updateDisplay();      // 呼叫你原本用來更新畫面的函數 (名字可能不同，請檢查)
+    renderNavigator();    // 重新畫導航列 (為了更新那個藍色 active 圈圈)
+    
+    // 如果你有語音功能，這裡可能也要加一行來讀出聲音
+    // speak(vocabList[currentIndex]); 
+}
 </script>
 
 </body>
