@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小四中文：詞意辨析練習</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --success: #10B981;
+            --error: #EF4444;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 30px; }
+
+        /* 進度條 */
+        .progress-container {
+            width: 100%;
+            background-color: #E5E7EB;
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 題目區 */
+        .question-box {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1F2937;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        /* 選項按鈕 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        button.option-btn {
+            padding: 15px;
+            border: 2px solid #E5E7EB;
+            background: white;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4B5563;
+        }
+
+        button.option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: #EEF2FF;
+        }
+
+        /* 狀態樣式 */
+        button.correct {
+            background-color: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+        }
+
+        button.wrong {
+            background-color: var(--error) !important;
+            color: white !important;
+            border-color: var(--error) !important;
+        }
+
+        /* 解析區 */
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #F9FAFB;
+            text-align: left;
+            display: none; /* 預設隱藏 */
+            border-left: 4px solid var(--primary);
+        }
+        .feedback h4 { margin: 0 0 5px 0; color: var(--primary); }
+
+        /* 控制按鈕 */
+        .next-btn {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none; /* 預設隱藏 */
+        }
+
+        .result-screen { display: none; }
+        .score-display { font-size: 3rem; font-weight: bold; color: var(--primary); }
+        .restart-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 480px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-screen">
+        <h1>詞意辨析大挑戰</h1>
+        <p class="subtitle">小學四年級中文科 • 單元練習</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="question-box" id="question-text">
+            題目載入中...
+        </div>
+
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <div class="feedback" id="feedback-area">
+            <h4>💡 詞語解析：</h4>
+            <p id="explanation-text"></p>
+        </div>
+
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">下一題 ➜</button>
+    </div>
+
+    <div id="result-screen" class="result-screen">
+        <h2>測驗完成！🎉</h2>
+        <p>你的成績是：</p>
+        <div class="score-display"><span id="score">0</span> / <span id="total">0</span></div>
+        <p id="comment">繼續加油！</p>
+        <button class="restart-btn" onclick="restartQuiz()">再玩一次 ↻</button>
+    </div>
+</div>
+
+<script>
+    // 題庫數據
+      const questions = [
+  // --- 第一部分：動詞篇 ---
+  {
+    "question": "在______舞會上，菲菲已「黑玫瑰」造型出現，幾乎沒有人認出他來。",
+    "options": ["化裝", "化身", "化妝", "化成"],
+    "answer": "化裝",
+    "explanation": "「化裝」通過容貌、道具、服裝的修飾，裝扮出與原樣不同的形象。"
+  },
+  {
+    "question": "菲菲負責前台接待工作，每天上班之前都必須______。",
+    "options": ["化裝", "化身", "化妝", "化成"],
+    "answer": "化妝",
+    "explanation": "用脂粉修飾面容五官，使容貌美麗。"
+  },
+  {
+    "question": "總編輯賞識他的______，決定開闢一個專欄來連載他的小說。",
+    "options": ["才藝", "才氣", "才華", "才智"],
+    "answer": "才華",
+    "explanation": "「才華」側重於文學或藝術方面的才學才藝。"
+  },
+  {
+    "question": "師兄是學生會主席，他的領導______大家有目共睹。",
+    "options": ["才華", "才能", "才氣", "才幹"],
+    "answer": "才能",
+    "explanation": "側重於做事的才智和能力。比「才華」更常用。"
+  },
+  {
+    "question": "黃教授是一位經驗______的牙醫。",
+    "options": ["豐盛", "豐滿", "豐采", "豐富"],
+    "answer": "豐富",
+    "explanation": "「豐富」則重形容物質財富、經驗學識。"
+  },
+  {
+    "question": "慧慧最近腸胃不適，面對着這一桌______的飯菜，也提不起食肉。",
+    "options": ["豐滿", "豐盛", "豐富", "豐采"],
+    "answer": "豐盛",
+    "explanation": "「豐盛」多形容食物。"
+  },
+  {
+    "question": "玩具廠爆炸產生了巨大的衝擊，附近的居民都能感受到______。",
+    "options": ["震動", "振動", "移動", "走動"],
+    "answer": "震動",
+    "explanation": "「震動」形容物體無規則的強烈的顫動。"
+  },
+  {
+    "question": "我們說話的聲音是由聲帶_______產生的。",
+    "options": ["震動", "移動", "振動", "走動"],
+    "answer": "振動",
+    "explanation": "「振動」形容物體有規則的、比較輕的運動。"
+  },
+  {
+    "question": "曉玲一再______爸爸抽時間出席畢業禮，他的眼淚都要出來了。",
+    "options": ["請求", "素求", "要求", "哀求"],
+    "answer": "哀求",
+    "explanation": "「哀求」重點在「哀」字，強調十分可憐的樣子。"
+  },
+  {
+    "question": "曉玲______老師給他兩個參加畢業禮的名額，讓父母一起來見證他的成長。",
+    "options": ["要求", "素求", "請求", "哀求"],
+    "answer": "請求",
+    "explanation": "「請求」強調鄭重地提出要求。"
+  },
+  // --- 第二部分 ---
+  {
+    "question": "每到這個季節，花園裏桃紅柳綠，蜂飛蝶舞，______出一片生機活力。",
+    "options": ["呈現", "出現", "顯現", "立現"],
+    "answer": "顯現",
+    "explanation": "「顯現」多只具體的事物在眼前出現。"
+  },
+  {
+    "question": "武器逐漸消散，遠處的山巒慢慢______出來。",
+    "options": ["顯現", "立現", "出現", "呈現"],
+    "answer": "呈現",
+    "explanation": "「呈現」只是物清楚地出現在眼前，持續時間長，「呈」帶有主動展示的意思。"
+  },
+  {
+    "question": "淡水油山間水______異成，水很深，但十分清澈。",
+    "options": ["會合", "結合", "匯合", "聚合"],
+    "answer": "匯合",
+    "explanation": "「匯合」即重於水流、氣流的聚合，也用於抽象事物（例如意志、力量）的匯聚。"
+  },
+  {
+    "question": "我們小組成員約定先在地鐵站______，然後一起去郊遊。",
+    "options": ["匯合", "聚合", "結合", "會合"],
+    "answer": "會合",
+    "explanation": "「會合」則重於人或團體的聚合。"
+  },
+  {
+    "question": "政府在______重要政策之前，都應廣泛聽取民意。",
+    "options": ["公佈", "宣佈", "頒佈", "發佈"],
+    "answer": "頒佈",
+    "explanation": "「頒佈」的內容多只法令、條例等重大的，正規的文件。"
+  },
+  {
+    "question": "學校在網上______了藝術節的節目名單。",
+    "options": ["宣佈", "公佈", "頒怖", "發佈"],
+    "answer": "公佈",
+    "explanation": "「公佈」向公眾公開發規、文高、通知等，也可以是方案、結果、成績等。"
+  },
+  {
+    "question": "小至上課時總是沒精打采，但一到操場，他馬上精力______。",
+    "options": ["充裕", "充足", "充沛", "充滿"],
+    "answer": "充沛",
+    "explanation": "「充沛」多形容。精力方面等不能展現在眼前的東西，如「充沛的體能」、「充沛的活力」。"
+  },
+  {
+    "question": "植物生長需要______的陽光與養分。",
+    "options": ["充裕", "充沛", "充滿", "充足"],
+    "answer": "充足",
+    "explanation": "「充足」多形容自然或者具體的東西，如「充足的水份」、「充足的資源」。"
+  },
+  {
+    "question": "叔叔雖然是個富翁，但他非常節儉，仍然住在______的老房子裏。",
+    "options": ["簡單", "簡潔", "簡陋，", "簡樸"],
+    "answer": "簡陋",
+    "explanation": "「簡陋」應用房屋、設備等簡單粗陋。"
+  },
+  {
+    "question": "我很欣賞這部小說______而親切的語言風格。",
+    "options": ["簡單", "簡樸", "簡潔", "簡陋"],
+    "answer": "簡樸",
+    "explanation": "「簡樸」形容文筆、語言、生活方式等簡單樸素。"
+  },
+  {
+    "question": "我和妹妹在姑媽家______了一個愉快的暑假。",
+    "options": ["渡過", "住過", "度過", "遇過"],
+    "answer": "度過",
+    "explanation": "「度過」只經歷了一段時間，常見的搭配有「度過假期」、「度過童年」。"
+  },
+  {
+    "question": "面對種種困難，公司希望員工能上下一心，共同______難關。",
+    "options": ["遇過", "度過", "渡過", "不過"],
+    "answer": "渡過",
+    "explanation": "「渡過」從氵部，用於過江、河、湖、羊等；「渡過」也只經歷困難，常見的搭配有「渡過重洋」、「渡過黃河」、「渡過危機」、「渡過難關」。"
+  },
+  {
+    "question": "伯父終於成功地舉辦了一場個人演奏會，足以令當初嘲笑他的人______相看。",
+    "options": ["側目", "矚目", "刮目", "雙目"],
+    "answer": "刮目",
+    "explanation": "「刮目」意思是用新的眼光看待，是褒義詞。"
+  },
+  {
+    "question": "加拿着一條鐵棍大搖大擺地走在街上，令很多路人對他_______。",
+    "options": ["矚目", "側目", "雙目", "刮目"],
+    "answer": "側目",
+    "explanation": "「側目」意思是不敢從正面看，邪着眼睛看，形容畏懼而又憤恨，是貶義詞。"
+  },
+  // --- 第三部分 ---
+  {
+    "question": "爺爺的艱苦童年，鍛鍊了他______的意志，他從來不向困難低頭。",
+    "options": ["逞強", "倔強", "剛強", "堅強"],
+    "answer": "堅強",
+    "explanation": "「堅強」應用意志堅定頑強，褒義詞，都有堅定，不可改變的意思。"
+  },
+  {
+    "question": "小強個性______而衝動，不聽勸告，總是闖了禍才知道後悔。",
+    "options": ["倔強", "逞強", "堅強", "剛強"],
+    "answer": "倔強",
+    "explanation": "「倔強」形容性情剛強固執，貶義詞，都有堅定，不可改變的意思。"
+  },
+  {
+    "question": "在同班同學中，他對事情「三分鐘熱度」的性格最______。",
+    "options": ["典範", "經典", "典型", "典禮"],
+    "answer": "典型",
+    "explanation": "「典型」可作形容詞或名詞，指某方面特性很具有代表性，中性詞。"
+  },
+  {
+    "question": "陳老師曾說：「德蘭修女是人類的______，人們永遠懷念他。」",
+    "options": ["典型", "典範", "典禮", "經典"],
+    "answer": "典範",
+    "explanation": "「典範」名詞，只有榜樣作用，值得仿效，褒義詞。"
+  },
+  {
+    "question": "從校長手裏接過畢業證書那一刻，______着我的學生時代正式結束。",
+    "options": ["標記", "標示", "標誌", "標題"],
+    "answer": "標誌",
+    "explanation": "「標誌」可以用作動詞和名詞，多與抽象事情搭配，如「成功的標誌」、「繁華的標誌」。"
+  },
+  {
+    "question": "複雜時，我們可以在書中重點處做______有助加深記憶。",
+    "options": ["標記", "標示", "標誌", "標題"],
+    "answer": "標記",
+    "explanation": "「標記」名字，用於具體的事物，如「符號標記」、「提示標記」。"
+  },
+  {
+    "question": "竹筏隨水漂流，竹林和白雲______在水中，如同仙境一般。",
+    "options": ["倒映", "倒照", "倒影", "倒入"],
+    "answer": "倒映",
+    "explanation": "「倒映」是動詞，當中「映」指「照射」。"
+  },
+  {
+    "question": "小石頭墜入湖中，擾亂了湖面______，激起了陣陣水花。",
+    "options": ["倒映", "倒影", "倒入", "倒照"],
+    "answer": "倒影",
+    "explanation": "「倒影」使命詞，當中「影」指「影子」。"
+  },
+  {
+    "question": "管理處通知，明晚大廈停電，我們一家人正為此事______。",
+    "options": ["哀愁", "憂愁", "發愁", "哭愁"],
+    "answer": "發愁",
+    "explanation": "「發愁」指感到憂慮，是動詞。"
+  },
+  {
+    "question": "淅淅瀝瀝的小雨下不停，掀起了我心中絲絲的______。",
+    "options": ["哀愁", "憂愁", "發愁", "哭愁"],
+    "answer": "憂愁",
+    "explanation": "「憂愁」憂慮受苦，可以做名詞或者形容詞。"
+  },
+  {
+    "question": "加班加點追趕工作進度，疲勞______病倒了。",
+    "options": ["過渡", "過分", "過失", "過度"],
+    "answer": "過度",
+    "explanation": "「過度」本是計量單位，例如可用於描述溫度、角度；「過度」是形容詞，只超過限度。"
+  },
+  {
+    "question": "老師指出我寫的文章，段落之間______不自然，需要修改。",
+    "options": ["過渡", "過分", "過度", "過失"],
+    "answer": "過渡",
+    "explanation": "「過渡」從「氵」部，「過渡」是動詞，只從岸的一頭到另一頭又只事情從一個階段到另一個階段發展轉變。。"
+  },
+  {
+    "question": "落地上海間種土地的開發已接近______。",
+    "options": ["極端", "極度", "極限", "極致"],
+    "answer": "極限",
+    "explanation": "「極限」多用作名詞，只最大限度。"
+  },
+  {
+    "question": "長輩總是教育我們，要從不同角度思考問題，做事不能______，要留有餘地。",
+    "options": ["極端", "極致", "極限", "極度"],
+    "answer": "極端",
+    "explanation": "「極端」一般用作形容詞或副詞，只發展到頂點的狀態，常見搭配。如「極端的舉動」、「極端的想法」、「行為極端」。"
+  },
+  {
+    "question": "小文為姐姐競賽落敗，而______，他認為家人給姐姐的壓力太大了。",
+    "options": ["可惜", "惋惜", "愛惜", "如惜"],
+    "answer": "惋惜",
+    "explanation": "「惋惜」常與人的不幸遭遇或重大事件搭配，感情比「可惜」更強烈。"
+  },
+  {
+    "question": "這個漂亮的花瓶被小貓打碎了，真______。",
+    "options": ["愛惜", "惋惜", "可惜", "如惜"],
+    "answer": "可惜",
+    "explanation": "「可惜」與「惋惜」都有令人感到遺憾的意思。"
+  },
+  {
+    "question": "妹妹頭髮少，經常被人______他的辮子像棵小蔥。",
+    "options": ["取笑", "譏笑", "恥笑", "嘲笑"],
+    "answer": "嘲笑",
+    "explanation": "「嘲笑」是一般取笑，通常不含有惡意，程度比較輕。"
+  },
+  {
+    "question": "單單穿衣風格與眾不同，但即使被別人______，她依然我行我素。",
+    "options": ["譏笑", "取笑", "恥笑", "嘲笑"],
+    "answer": "譏笑",
+    "explanation": "「譏笑」帶有諷刺挖苦的意思，程度較重。"
+  },
+  {
+    "question": "他做事一向______，很少出差錯。",
+    "options": ["仔細", "詳細", "微細", "精細"],
+    "answer": "仔細",
+    "explanation": "「仔細」形容細心、當心。形容做事態度。"
+  },
+  {
+    "question": "請你______說明一下這件事的經過。",
+    "options": ["仔細", "詳細", "精細", "瑣細"],
+    "answer": "詳細",
+    "explanation": "「詳細」指周全完備、不簡單。形容說明內容。"
+  },
+  {
+    "question": "這座橋樑的設計十分______，既美觀又實用。",
+    "options": ["巧妙", "奇妙", "美妙", "奧妙"],
+    "answer": "巧妙",
+    "explanation": "「巧妙」指靈巧高明，超過一般。形容設計、技術、方法。"
+  },
+  {
+    "question": "童話故事裡的世界真是______，充滿了想像力。",
+    "options": ["巧妙", "奇妙", "巧妙", "乖巧"],
+    "answer": "奇妙",
+    "explanation": "「奇妙」指稀奇神妙。形容夢境、幻想世界。"
+  },
+  {
+    "question": "他生了一場大病，身體非常______。",
+    "options": ["軟弱", "虛弱", "薄弱", "微弱"],
+    "answer": "虛弱",
+    "explanation": "「虛弱」指身體不結實，精力不足。「軟弱」多指性格。"
+  },
+  {
+    "question": "遇到欺凌時，我們不能______，要勇敢尋求幫助。",
+    "options": ["軟弱", "虛弱", "脆弱", "瘦弱"],
+    "answer": "軟弱",
+    "explanation": "「軟弱」指性格不堅強，缺乏主見或勇氣。"
+  },
+  {
+    "question": "這兩篇文章的內容大同小異，沒有什麼______的分別。",
+    "options": ["顯著", "顯明", "顯現", "淺顯"],
+    "answer": "顯著",
+    "explanation": "「顯著」指非常明顯，引人注目。形容區別、成績、效果。"
+  },
+  {
+    "question": "牆上的告示寫得非常______，大家一看就懂。",
+    "options": ["清楚", "清晰", "清秀", "清白"],
+    "answer": "清楚",
+    "explanation": "「清楚」指事物容易讓人了解、辨認。"
+  },
+  {
+    "question": "大霧散去，遠處的山峰逐漸______起來。",
+    "options": ["清楚", "清晰", "清醒", "清脆"],
+    "answer": "清晰",
+    "explanation": "「清晰」指形象清楚，不模糊。多形容視覺或聽覺。"
+  },
+  {
+    "question": "對於朋友的缺點，我們應該婉轉勸告，不要當面______。",
+    "options": ["斥責", "負責", "指責", "職責"],
+    "answer": "指責",
+    "explanation": "「指責」指指出過失並責備；「斥責」程度更重，含嚴厲申斥意。"
+  },
+  {
+    "question": "他因為打破了窗戶，受到了媽媽的______。",
+    "options": ["責備", "責罰", "責任", "責怪"],
+    "answer": "責備",
+    "explanation": "「責備」指批評、怪罪。"
+  },
+  {
+    "question": "我們應該______資源，不要隨意浪費。",
+    "options": ["珍惜", "愛惜", "可惜", "惋惜"],
+    "answer": "珍惜",
+    "explanation": "「珍惜」指珍重愛惜，多用於抽象事物（如友誼、機會、時間），也可指資源。"
+  }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const progressBar = document.getElementById('progress-bar');
+    const feedbackArea = document.getElementById('feedback-area');
+    const explanationText = document.getElementById('explanation-text');
+    const nextBtn = document.getElementById('next-btn');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const scoreSpan = document.getElementById('score');
+    const totalSpan = document.getElementById('total');
+    const comment = document.getElementById('comment');
+
+    function loadQuestion() {
+        const currentQ = questions[currentQuestionIndex];
+        
+        // 更新進度條
+        const progress = ((currentQuestionIndex) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // 重置介面
+        questionText.textContent = `${currentQuestionIndex + 1}. ${currentQ.question}`;
+        optionsContainer.innerHTML = '';
+        feedbackArea.style.display = 'none';
+        nextBtn.style.display = 'none';
+
+        // 產生選項
+        currentQ.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkAnswer(opt, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, btnElement) {
+        // 鎖定所有按鈕
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        const currentQ = questions[currentQuestionIndex];
+        const isCorrect = selected === currentQ.answer;
+
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            score++;
+        } else {
+            btnElement.classList.add('wrong');
+            // 標示正確答案
+            buttons.forEach(btn => {
+                if (btn.textContent === currentQ.answer) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        // 顯示解析
+        explanationText.textContent = currentQ.explanation;
+        feedbackArea.style.display = 'block';
+        
+        // 顯示下一題按鈕
+        nextBtn.style.display = 'inline-block';
+        if (currentQuestionIndex === questions.length - 1) {
+            nextBtn.textContent = "查看結果 🏆";
+        } else {
+            nextBtn.textContent = "下一題 ➜";
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        quizScreen.style.display = 'none';
+        resultScreen.style.display = 'block';
+        scoreSpan.textContent = score;
+        totalSpan.textContent = questions.length;
+
+        if (score === questions.length) {
+            comment.textContent = "太厲害了！全對！🌟";
+        } else if (score >= questions.length * 0.6) {
+            comment.textContent = "做得不錯！繼續保持！👍";
+        } else {
+            comment.textContent = "再接再厲，多複習一下詞語意思喔！💪";
+        }
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        resultScreen.style.display = 'none';
+        quizScreen.style.display = 'block';
+        progressBar.style.width = '0%';
+        loadQuestion();
+    }
+
+    // 啟動程式
+    loadQuestion();
+</script>
+
+</body>
+</html>
