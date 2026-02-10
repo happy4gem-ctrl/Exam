@@ -11,6 +11,7 @@
             --error: #EF4444;
             --bg: #F3F4F6;
             --card: #FFFFFF;
+            --secondary: #6B7280;
         }
 
         body {
@@ -24,7 +25,6 @@
             padding: 20px;
         }
 
-        /* 佈局容器 */
         .main-layout {
             display: flex;
             gap: 20px;
@@ -33,7 +33,6 @@
             align-items: flex-start;
         }
 
-        /* 側邊欄樣式 */
         .sidebar {
             width: 180px;
             background: white;
@@ -69,23 +68,18 @@
             text-align: center;
             font-size: 0.9rem;
             transition: all 0.2s;
-            font-weight: 500;
         }
-
-        .nav-item:hover { background: #F9FAFB; }
 
         .nav-item.active {
             border-color: var(--primary);
             background: #EEF2FF;
             color: var(--primary);
-            box-shadow: inset 4px 0 0 var(--primary);
+            font-weight: bold;
         }
 
-        /* 答題後的顏色標記 */
         .nav-item.correct-mark { border-left: 5px solid var(--success); color: var(--success); }
         .nav-item.wrong-mark { border-left: 5px solid var(--error); color: var(--error); }
 
-        /* 主容器 */
         .container {
             background-color: var(--card);
             flex-grow: 1;
@@ -159,17 +153,29 @@
             border-left: 4px solid var(--primary);
         }
 
-        .next-btn {
+        /* 按鈕控制區 */
+        .controls {
             margin-top: 25px;
-            padding: 12px 30px;
-            background-color: var(--primary);
-            color: white;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .next-btn, .prev-btn {
+            padding: 12px 25px;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
-            display: none;
+            transition: opacity 0.2s;
+            flex: 1;
         }
+
+        .next-btn { background-color: var(--primary); color: white; }
+        .prev-btn { background-color: var(--secondary); color: white; }
+        
+        /* 隱藏按鈕但不影響佈局 */
+        .hidden { visibility: hidden; }
 
         .result-screen { display: none; }
         .score-display { font-size: 3rem; font-weight: bold; color: var(--primary); }
@@ -185,9 +191,8 @@
 
         @media (max-width: 768px) {
             .main-layout { flex-direction: column; }
-            .sidebar { width: 100%; max-height: 120px; padding: 10px; }
+            .sidebar { width: 100%; max-height: 120px; }
             .question-list { flex-direction: row; overflow-x: auto; }
-            .nav-item { min-width: 80px; }
             .options-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -210,7 +215,6 @@
             </div>
 
             <div class="question-box" id="question-text">載入中...</div>
-
             <div class="options-grid" id="options-container"></div>
 
             <div class="feedback" id="feedback-area">
@@ -218,7 +222,10 @@
                 <p id="explanation-text"></p>
             </div>
 
-            <button class="next-btn" id="next-btn" onclick="nextQuestion()">下一題 ➜</button>
+            <div class="controls">
+                <button class="prev-btn" id="prev-btn" onclick="prevQuestion()">⬅ 上一題</button>
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">下一題 ➜</button>
+            </div>
         </div>
 
         <div id="result-screen" class="result-screen">
@@ -565,26 +572,20 @@
 
    let currentQuestionIndex = 0;
     let score = 0;
-    // 用來記錄每一題的回答狀態：null=未答, true=對, false=錯
     let userAnswers = new Array(questions.length).fill(null);
 
     function renderSidebar() {
         const listContainer = document.getElementById('question-list');
         listContainer.innerHTML = '';
-
         questions.forEach((_, index) => {
             const item = document.createElement('div');
-            let statusClass = '';
-            if (userAnswers[index] === true) statusClass = 'correct-mark';
-            else if (userAnswers[index] === false) statusClass = 'wrong-mark';
+            let status = '';
+            if (userAnswers[index] === true) status = 'correct-mark';
+            else if (userAnswers[index] === false) status = 'wrong-mark';
 
-            item.className = `nav-item ${index === currentQuestionIndex ? 'active' : ''} ${statusClass}`;
+            item.className = `nav-item ${index === currentQuestionIndex ? 'active' : ''} ${status}`;
             item.textContent = `第 ${index + 1} 題`;
-            
-            item.onclick = () => {
-                currentQuestionIndex = index;
-                loadQuestion();
-            };
+            item.onclick = () => { currentQuestionIndex = index; loadQuestion(); };
             listContainer.appendChild(item);
         });
     }
@@ -593,24 +594,28 @@
         const currentQ = questions[currentQuestionIndex];
         renderSidebar();
 
-        // 進度條
+        // 更新進度
         const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
         document.getElementById('progress-bar').style.width = `${progress}%`;
-
         document.getElementById('question-text').textContent = `${currentQuestionIndex + 1}. ${currentQ.question}`;
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-        
-        const feedbackArea = document.getElementById('feedback-area');
+
+        // 控制按鈕顯示
+        const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         
-        // 如果已經答過這題
+        // 第一題隱藏「上一題」
+        if (currentQuestionIndex === 0) prevBtn.classList.add('hidden');
+        else prevBtn.classList.remove('hidden');
+
+        // 判斷是否已答題
         if (userAnswers[currentQuestionIndex] !== null) {
             showAlreadyAnswered();
         } else {
-            feedbackArea.style.display = 'none';
-            nextBtn.style.display = 'none';
+            document.getElementById('feedback-area').style.display = 'none';
+            nextBtn.style.visibility = 'hidden'; // 未答題前不顯示下一題
             
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
             currentQ.options.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
@@ -624,18 +629,16 @@
     function checkAnswer(selected, btnElement) {
         const currentQ = questions[currentQuestionIndex];
         const isCorrect = selected === currentQ.answer;
-        
         userAnswers[currentQuestionIndex] = isCorrect;
         if (isCorrect) score++;
-
+        
         showAlreadyAnswered(selected);
-        renderSidebar(); // 立即更新側欄顏色
+        renderSidebar();
     }
 
     function showAlreadyAnswered(selectedChoice = null) {
         const currentQ = questions[currentQuestionIndex];
         const optionsContainer = document.getElementById('options-container');
-        const feedbackArea = document.getElementById('feedback-area');
         const nextBtn = document.getElementById('next-btn');
 
         optionsContainer.innerHTML = '';
@@ -644,19 +647,15 @@
             btn.className = 'option-btn';
             btn.textContent = opt;
             btn.disabled = true;
-
-            if (opt === currentQ.answer) {
-                btn.classList.add('correct');
-            } else if (userAnswers[currentQuestionIndex] === false && opt === selectedChoice) {
-                // 只有在剛點擊錯誤時標紅（或是之後回來查看時，如果我們有存選擇的話）
-                btn.classList.add('wrong');
-            }
+            if (opt === currentQ.answer) btn.classList.add('correct');
+            // 如果這題答錯了，標示出使用者選錯的那一個
+            else if (userAnswers[currentQuestionIndex] === false && selectedChoice === opt) btn.classList.add('wrong');
             optionsContainer.appendChild(btn);
         });
 
         document.getElementById('explanation-text').textContent = currentQ.explanation;
-        feedbackArea.style.display = 'block';
-        nextBtn.style.display = 'inline-block';
+        document.getElementById('feedback-area').style.display = 'block';
+        nextBtn.style.visibility = 'visible';
         nextBtn.textContent = currentQuestionIndex === questions.length - 1 ? "查看結果 🏆" : "下一題 ➜";
     }
 
@@ -666,6 +665,13 @@
             loadQuestion();
         } else {
             showResult();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            loadQuestion();
         }
     }
 
